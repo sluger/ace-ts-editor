@@ -50,7 +50,7 @@ export interface IAceEditorConfig {
  * Ace editor wrapper which has a reference to the parent HTML element of the editor.
  * It sets the custom language mode as well as registers completers.
  */
-export class AceEditor {
+export default class AceEditor {
 
   /**
    * Ace editor options.

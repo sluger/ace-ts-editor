@@ -21,7 +21,10 @@ export default {
     commonjs(),
 
     // Compile TypeScript/JavaScript files
-    babel({ extensions, exclude: 'node_modules/**' }),
+    babel({
+      extensions,
+      exclude: 'node_modules/**'
+    }),
   ],
 
   output: [{

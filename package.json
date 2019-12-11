@@ -17,7 +17,8 @@
     "type-check:watch": "npm run type-check -- --watch",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build": "npm run build:types && npm run build:js"
+    "build": "npm run build:types && npm run build:js",
+    "test": "jest"
   },
   "main": "dist/ace-ts-editor.js",
   "unpkg": "dist/ace-ts-editor.min.js",
@@ -34,10 +35,13 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.7.4",
     "@babel/preset-env": "^7.7.6",
     "@babel/preset-typescript": "^7.7.4",
+    "@types/jest": "^24.0.23",
+    "jest": "^24.9.0",
     "rollup": "^1.27.10",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
+    "ts-jest": "^24.2.0",
     "typescript": "^3.7.3"
   }
 }
