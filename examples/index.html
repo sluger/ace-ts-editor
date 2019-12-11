@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="../node_modules/ace-builds/src-min-noconflict/ace.js"></script>
+  <script src="../node_modules/ace-builds/src-min-noconflict/ext-language_tools.js"></script>
+  <script src="PrestoSqlMode.js"></script>
+  <script src="../dist/ace-ts-editor.js"></script>
+</head>
+
+<body>
+  <script>
+    /**
+     * Mock schema API call with delay.
+     */
+    function fetchSchemaMock() {
+      return new Promise((resolve, reject) => {
+        try {
+          setTimeout(() => resolve(['customer', 'customeraddress', 'tenantentity']), 200);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }
+
+    /**
+     * Transform suggested keywords in upper case.
+     */
+    function getUpperCaseCompleter() {
+      return {
+        getCompletions: (editor, session, pos, prefix, callback) => {
+          const state = editor.session.getState(pos.row);
+          let keywordCompletions = session.$mode.getCompletions(state, session, pos, prefix);
+          keywordCompletions = keywordCompletions.map((obj) => {
+            return Object.assign(obj, { value: obj.value.toUpperCase() });
+          });
+          return callback(null, keywordCompletions);
+        }
+      }
+    }
+
+    /**
+     * Analytics schema derived completer which suggests exported tables and columns.
+     */
+    function getSchemaCompleter(schema) {
+      // TODO: refactor schema into data structure { table: {name: string, columns: string[]}}[]
+      return {
+        getCompletions: (editor, session, pos, prefix, callback) => {
+          const schemaCompletions = schema.map((t) => ({ meta: 'schema', value: t, score: 0 }));
+          return callback(null, schemaCompletions);
+        }
+      }
+    }
+
+    /**
+     * Existing ace completer for recognizing existing tokens within the editor.
+     */
+    function getTextCompleter() {
+      return ace.require('ace/ext/language_tools').textCompleter;
+    }
+
+    /**
+     * config
+     */
+    var element = document.querySelector('body');
+    var cfg = {
+      element,
+      value: `SELECT t.id, t.name, t.amount FROM transactions t WHERE t.id > 5000`,
+      options: {
+        mode: 'ace/mode/prestosql',
+        theme: 'ace/theme/eclipse',
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: false,
+        minLines: 25,
+        maxLines: 50,
+        showPrintMargin: false
+      },
+      completers: []
+    };
+
+    var completers = [];
+    fetchSchemaMock().then((res) => {
+      completers = [
+        getUpperCaseCompleter(),
+        getSchemaCompleter(res),
+        getTextCompleter()
+      ];
+      Object.assign(cfg, { completers });
+      var aceEditor = new AceTsEditor.AceEditor(cfg);
+    });
+  </script>
+</body>
+
+</html>
