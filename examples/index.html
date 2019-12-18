@@ -16,9 +16,9 @@
        * Mock schema API call with delay.
        */
       function fetchSchemaMock() {
-        return new Promise((resolve, reject) => {
+        return new Promise(function (resolve, reject) {
           try {
-            setTimeout(() => resolve(['customer', 'customeraddress', 'tenantentity']), 200);
+            setTimeout(function () { return resolve(['customer', 'customeraddress', 'tenantentity']); }, 200);
           } catch (e) {
             reject(e);
           }
@@ -30,7 +30,7 @@
        */
       function getUpperCaseCompleter() {
         return {
-          getCompletions: (editor, session, pos, prefix, callback) => {
+          getCompletions(editor, session, pos, prefix, callback) {
             var state = editor.session.getState(pos.row);
             var keywordCompletions = session.$mode.getCompletions(state, session, pos, prefix);
             keywordCompletions = keywordCompletions.map((obj) => {
@@ -45,21 +45,22 @@
        * Analytics schema derived completer which suggests exported tables and columns.
        */
       function getSchemaCompleter(schema) {
-      // TODO: refactor schema into data structure { table: {name: string, columns: string[]}}[]
         return {
-          getCompletions: (editor, session, pos, prefix, callback) => {
+          getCompletions(editor, session, pos, prefix, callback) {
             var schemaCompletions = schema.map((t) => ({ meta: 'schema', value: t, score: 10 }));
             return callback(null, schemaCompletions);
           }
         }
       }
 
-    /**
-     * Existing ace completer for recognizing existing tokens within the editor.
-     */
-    function getTextCompleter() {
-      return ace.require('ace/ext/language_tools').textCompleter;
-    }
+      /**
+       * Existing ace completer for recognizing existing tokens within the editor.
+       */
+      function getTextCompleter() {
+        return {
+          getCompletions(editor, session, pos, prefix, callback) {
+            return ace.require('ace/ext/language_tools').textCompleter;
+          }
         }
       }
 
@@ -85,7 +86,7 @@
       var aceEditor;
 
       var completers = [];
-      fetchSchemaMock().then((res) => {
+      fetchSchemaMock().then(function (res) {
         completers = [
           getUpperCaseCompleter(),
           getSchemaCompleter(res),
