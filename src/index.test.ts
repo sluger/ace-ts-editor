@@ -1,4 +1,4 @@
-import AceEditor, { IAceEditorConfig } from "./index";
+import { AceEditor, IAceEditorConfig } from "./index";
 
 describe('Ace Editor test bench', () => {
   test('basic', () => {
