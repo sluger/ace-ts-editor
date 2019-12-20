@@ -23,14 +23,14 @@ ace.define('ace/mode/prestosql_highlight_rules', [], function (require, exports,
 
   var PrestoSqlHighlightRules = function () {
     var keywords = (
-      "with|select|all|distinct|from|where|group by|having|union|intersect|order by|asc|desc|offset|" +
-      "row|rows|limit|fetch|next|only|with ties|on|join|inner join|left join|left outer join|" +
-      "right join|right outer join|full join|full outer join|cross join|grouping sets|cube|rollup|" +
+      "with|select|all|distinct|from|where|group by|having|union|intersect|asc|desc|offset|" +
+      "row|rows|limit|fetch|next|only|on|join|order|by|ties|inner|left|right|outer|full|cross|" +
+      "cube|rollup|grouping|sets|or|and|not|null|true|false|" +
       "as|in|null|nulls|values|tablesample|bernoulli|system|unnest|array|map|ordinality|lateral"
     );
 
     var builtinConstants = (
-      "null|true|false|and|or|not"
+      ""
     );
 
     var builtinFunctions = (
