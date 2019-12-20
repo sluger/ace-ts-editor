@@ -2,11 +2,11 @@
 <html>
 
 <head>
-  <script src="../node_modules/ace-builds/src-min-noconflict/ace.js"></script>
-  <script src="../node_modules/ace-builds/src-min-noconflict/ext-language_tools.js"></script>
-  <script src="../node_modules/sql-formatter/dist/sql-formatter.min.js"></script>
-  <script src="PrestoSqlMode.js"></script>
-  <script src="../dist/ace-ts-editor.js"></script>
+  <script src="../node_modules/ace-builds/src-min-noconflict/ace.js" type="text/javascript"></script>
+  <script src="../node_modules/ace-builds/src-min-noconflict/ext-language_tools.js" type="text/javascript"></script>
+  <script src="../node_modules/sql-formatter/dist/sql-formatter.min.js" type="text/javascript"></script>
+  <script src="PrestoSqlMode.js" type="text/javascript"></script>
+  <script src="../dist/ace-ts-editor.js" type="text/javascript"></script>
 </head>
 
 <body>
@@ -26,19 +26,49 @@
       }
 
       /**
-       * Transform suggested keywords in upper case.
+       * Transform suggested keywords to upper case.
        */
-      function getUpperCaseCompleter() {
+      function getKeywordCompleter() {
         return {
           getCompletions(editor, session, pos, prefix, callback) {
             var state = editor.session.getState(pos.row);
             var keywordCompletions = session.$mode.getCompletions(state, session, pos, prefix);
             keywordCompletions = keywordCompletions.map((obj) => {
-              return Object.assign(obj, { value: obj.value.toUpperCase() });
+              return Object.assign(obj, { value: obj.value.toUpperCase(), meta: 'Keyword', score: 0 });
             });
             return callback(null, keywordCompletions);
           }
         }
+      }
+
+      /**
+       *  Get preceding token which matches the parameter function matchFn(token).
+       */
+      function getPrecedingToken(session, row, index, matchFn) {
+        var rowTokens = session.getTokens(row);
+
+        if (index == null) {
+          if (rowTokens.length > 0) {
+            var t = rowTokens[rowTokens.length - 1];
+            return matchFn(t) ? t : getPrecedingToken(session, row, rowTokens.length - 1, matchFn);
+          } else {
+            if (row > 0) {
+              return getPrecedingToken(session, row - 1, null, matchFn);
+            } else {
+              return null;
+            }
+          }
+        }
+
+        if (row === 0 && index === 0) {
+          return null;
+        } else if (row > 0 && index === 0) {
+          return getPrecedingToken(session, row - 1, null, matchFn);
+        } else {
+          var t = rowTokens[index - 1];
+          return matchFn(t) ? t : getPrecedingToken(session, row, index - 1, matchFn);
+        }
+        return null;
       }
 
       /**
@@ -47,7 +77,20 @@
       function getSchemaCompleter(schema) {
         return {
           getCompletions(editor, session, pos, prefix, callback) {
-            var schemaCompletions = schema.map((t) => ({ meta: 'schema', value: t, score: 10 }));
+            var schemaCompletions = schema.map((t) => ({ meta: 'schema', value: t, score: 0 }));
+
+            var token = session.getTokenAt(pos.row, pos.column);
+            if (token != null && token.type !== 'keyword') {
+              var precKeyword = getPrecedingToken(session, pos.row, token.index, (t) => t.type === 'keyword');
+              var precToken = getPrecedingToken(session, pos.row, token.index, (t) => !t.value.match(/\s/));
+
+              console.log(precKeyword);
+              console.log(precToken);
+              console.log(token);
+
+              // TODO: define rules based on these keywords what to suggest and how to weigh
+            }
+
             return callback(null, schemaCompletions);
           }
         }
@@ -55,13 +98,53 @@
 
       /**
        * Existing ace completer for recognizing existing tokens within the editor.
+       * code taken from ace.require('ace/ext/language_tools').textCompleter;
        */
       function getTextCompleter() {
         return {
           getCompletions(editor, session, pos, prefix, callback) {
-            return ace.require('ace/ext/language_tools').textCompleter;
+            var Range = ace.Range;
+            var splitRegex = /[^a-zA-Z_0-9\$\-\u00C0-\u1FFF\u2C00-\uD7FF\w]+/;
+
+            function getWordIndex(doc, pos) {
+              var textBefore = doc.getTextRange(Range.fromPoints({ row: 0, column: 0 }, pos));
+              return textBefore.split(splitRegex).length - 1;
+            }
+            function wordDistance(doc, pos) {
+              var prefixPos = getWordIndex(doc, pos);
+              var words = doc.getValue().split(splitRegex);
+              var wordScores = Object.create(null);
+
+              var currentWord = words[prefixPos];
+
+              words.forEach(function (word, idx) {
+                if (!word || word === currentWord) return;
+
+                var distance = Math.abs(prefixPos - idx);
+                var score = words.length - distance;
+                if (wordScores[word]) {
+                  wordScores[word] = Math.max(score, wordScores[word]);
+                } else {
+                  wordScores[word] = score;
+                }
+              });
+              return wordScores;
+            }
+
+            var wordScore = wordDistance(session, pos);
+            var wordList = Object.keys(wordScore);
+            return callback(null, wordList.map(function (word) {
+              return {
+                caption: word,
+                value: word,
+                score: 0, // wordScore[word],
+                meta: "local"
+              };
+            }));
           }
         }
+        // TODO: remove original textCompleter import
+        //return ace.require('ace/ext/language_tools').textCompleter;
       }
 
       /**
@@ -70,7 +153,7 @@
       var element = document.querySelector('body > #editor');
       var cfg = {
         element,
-        value: `SELECT t.id, t.name, t.amount FROM transactions t WHERE t.id > 5000`,
+        value: `SELECT testentitya.one, testentityb.two, testentityc.three FROM testentitya INNER JOIN testentityb ON testentitya.id = testentityb.id RIGHT JOIN testentitye ON testentityb.id = testentitye.id WHERE testentitya.someprop = 'val' OR testentitya.otherprop IN ('ValA','ValB') ORDER BY 1 HAVING 'val' = 5`,
         options: {
           mode: 'ace/mode/prestosql',
           theme: 'ace/theme/eclipse',
@@ -88,7 +171,7 @@
       var completers = [];
       fetchSchemaMock().then(function (res) {
         completers = [
-          getUpperCaseCompleter(),
+          getKeywordCompleter(),
           getSchemaCompleter(res),
           getTextCompleter()
         ];
