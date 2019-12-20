@@ -4,9 +4,6 @@
 
 import * as ace from 'ace-builds';
 
-// import 'ace-builds/src-noconflict/theme-eclipse';
-// import 'ace-builds/src-noconflict/ext-language_tools';
-
 
 export interface IAceEditorOptions extends Partial<ace.Ace.EditorOptions> {
 
