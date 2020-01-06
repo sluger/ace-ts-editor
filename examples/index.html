@@ -14,11 +14,20 @@
     window.onload = function () {
       /**
        * Mock schema API call with delay.
+       * TODO: replace with real API call
        */
       function fetchSchemaMock() {
         return new Promise(function (resolve, reject) {
           try {
-            setTimeout(function () { return resolve(['customer', 'customeraddress', 'tenantentity']); }, 200);
+            setTimeout(function () {
+              var schema = [{ table: 'customer', columns: ['firstname', 'lastname'] }, { table: 'customeraddress', columns: ['address.street', 'address.country'] }]
+              var flatSchema = [];
+              schema.forEach((t) => {
+                flatSchema.push({ meta: 'Table', value: t.table, score: 0 });
+                flatSchema.push(...t.columns.map((c) => ({ meta: 'Column', value: c, score: 0 })));
+              });
+              return resolve(flatSchema);
+            }, 200);
           } catch (e) {
             reject(e);
           }
@@ -42,109 +51,14 @@
       }
 
       /**
-       *  Get preceding token which matches the parameter function matchFn(token).
-       */
-      function getPrecedingToken(session, row, index, matchFn) {
-        var rowTokens = session.getTokens(row);
-
-        if (index == null) {
-          if (rowTokens.length > 0) {
-            var t = rowTokens[rowTokens.length - 1];
-            return matchFn(t) ? t : getPrecedingToken(session, row, rowTokens.length - 1, matchFn);
-          } else {
-            if (row > 0) {
-              return getPrecedingToken(session, row - 1, null, matchFn);
-            } else {
-              return null;
-            }
-          }
-        }
-
-        if (row === 0 && index === 0) {
-          return null;
-        } else if (row > 0 && index === 0) {
-          return getPrecedingToken(session, row - 1, null, matchFn);
-        } else {
-          var t = rowTokens[index - 1];
-          return matchFn(t) ? t : getPrecedingToken(session, row, index - 1, matchFn);
-        }
-        return null;
-      }
-
-      /**
        * Analytics schema derived completer which suggests exported tables and columns.
        */
       function getSchemaCompleter(schema) {
         return {
           getCompletions(editor, session, pos, prefix, callback) {
-            var schemaCompletions = schema.map((t) => ({ meta: 'schema', value: t, score: 0 }));
-
-            var token = session.getTokenAt(pos.row, pos.column);
-            if (token != null && token.type !== 'keyword') {
-              var precKeyword = getPrecedingToken(session, pos.row, token.index, (t) => t.type === 'keyword');
-              var precToken = getPrecedingToken(session, pos.row, token.index, (t) => !t.value.match(/\s/));
-
-              console.log(precKeyword);
-              console.log(precToken);
-              console.log(token);
-
-              // TODO: define rules based on these keywords what to suggest and how to weigh
-            }
-
-            return callback(null, schemaCompletions);
+            return callback(null, schema);
           }
         }
-      }
-
-      /**
-       * Existing ace completer for recognizing existing tokens within the editor.
-       * code taken from ace.require('ace/ext/language_tools').textCompleter;
-       */
-      function getTextCompleter() {
-        return {
-          getCompletions(editor, session, pos, prefix, callback) {
-            var Range = ace.Range;
-            var splitRegex = /[^a-zA-Z_0-9\$\-\u00C0-\u1FFF\u2C00-\uD7FF\w]+/;
-
-            function getWordIndex(doc, pos) {
-              var textBefore = doc.getTextRange(Range.fromPoints({ row: 0, column: 0 }, pos));
-              return textBefore.split(splitRegex).length - 1;
-            }
-            function wordDistance(doc, pos) {
-              var prefixPos = getWordIndex(doc, pos);
-              var words = doc.getValue().split(splitRegex);
-              var wordScores = Object.create(null);
-
-              var currentWord = words[prefixPos];
-
-              words.forEach(function (word, idx) {
-                if (!word || word === currentWord) return;
-
-                var distance = Math.abs(prefixPos - idx);
-                var score = words.length - distance;
-                if (wordScores[word]) {
-                  wordScores[word] = Math.max(score, wordScores[word]);
-                } else {
-                  wordScores[word] = score;
-                }
-              });
-              return wordScores;
-            }
-
-            var wordScore = wordDistance(session, pos);
-            var wordList = Object.keys(wordScore);
-            return callback(null, wordList.map(function (word) {
-              return {
-                caption: word,
-                value: word,
-                score: 0, // wordScore[word],
-                meta: "local"
-              };
-            }));
-          }
-        }
-        // TODO: remove original textCompleter import
-        //return ace.require('ace/ext/language_tools').textCompleter;
       }
 
       /**
@@ -153,7 +67,7 @@
       var element = document.querySelector('body > #editor');
       var cfg = {
         element,
-        value: `SELECT testentitya.one, testentityb.two, testentityc.three FROM testentitya INNER JOIN testentityb ON testentitya.id = testentityb.id RIGHT JOIN testentitye ON testentityb.id = testentitye.id WHERE testentitya.someprop = 'val' OR testentitya.otherprop IN ('ValA','ValB') ORDER BY 1 HAVING 'val' = 5`,
+        value: `SELECT customer.firstname, ca.address.street, ca.address.country FROM customer INNER JOIN customeraddress ca ON customer.id = ca.id WHERE ca.country = 'Switzerland' OR ca.country IN ('Germany','Austria') GROUP BY 1 HAVING ca.city = 'Baden'`,
         options: {
           mode: 'ace/mode/prestosql',
           theme: 'ace/theme/eclipse',
@@ -172,8 +86,7 @@
       fetchSchemaMock().then(function (res) {
         completers = [
           getKeywordCompleter(),
-          getSchemaCompleter(res),
-          getTextCompleter()
+          getSchemaCompleter(res)
         ];
         Object.assign(cfg, { completers });
         aceEditor = new AceTsEditor.AceEditor(cfg);
