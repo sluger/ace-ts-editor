@@ -1,108 +1,106 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <script src="../node_modules/ace-builds/src-min-noconflict/ace.js" type="text/javascript"></script>
+    <script src="../node_modules/ace-builds/src-min-noconflict/ext-language_tools.js" type="text/javascript"></script>
+    <script src="../node_modules/sql-formatter/dist/sql-formatter.min.js" type="text/javascript"></script>
+    <script src="PrestoSqlMode.js" type="text/javascript"></script>
+    <script src="../dist/ace-ts-editor.js" type="text/javascript"></script>
+  </head>
 
-<head>
-  <script src="../node_modules/ace-builds/src-min-noconflict/ace.js" type="text/javascript"></script>
-  <script src="../node_modules/ace-builds/src-min-noconflict/ext-language_tools.js" type="text/javascript"></script>
-  <script src="../node_modules/sql-formatter/dist/sql-formatter.min.js" type="text/javascript"></script>
-  <script src="PrestoSqlMode.js" type="text/javascript"></script>
-  <script src="../dist/ace-ts-editor.js" type="text/javascript"></script>
-</head>
+  <body>
+    <script>
+      window.onload = function () {
+        /**
+         * Mock schema API call with delay.
+         * TODO: replace with real API call
+         */
+        function fetchSchemaMock() {
+          return new Promise(function (resolve, reject) {
+            try {
+              setTimeout(function () {
+                var schema = [
+                  { table: 'customer', columns: ['firstname', 'lastname'] },
+                  { table: 'customeraddress', columns: ['address.street', 'address.country'] },
+                ];
+                var flatSchema = [];
+                schema.forEach((t) => {
+                  flatSchema.push({ meta: 'Table', value: t.table, score: 0 });
+                  flatSchema.push(...t.columns.map((c) => ({ meta: 'Column', value: c, score: 0 })));
+                });
+                return resolve(flatSchema);
+              }, 200);
+            } catch (e) {
+              reject(e);
+            }
+          });
+        }
 
-<body>
-  <script>
-    window.onload = function () {
-      /**
-       * Mock schema API call with delay.
-       * TODO: replace with real API call
-       */
-      function fetchSchemaMock() {
-        return new Promise(function (resolve, reject) {
-          try {
-            setTimeout(function () {
-              var schema = [{ table: 'customer', columns: ['firstname', 'lastname'] }, { table: 'customeraddress', columns: ['address.street', 'address.country'] }]
-              var flatSchema = [];
-              schema.forEach((t) => {
-                flatSchema.push({ meta: 'Table', value: t.table, score: 0 });
-                flatSchema.push(...t.columns.map((c) => ({ meta: 'Column', value: c, score: 0 })));
+        /**
+         * Transform suggested keywords to upper case.
+         */
+        function getKeywordCompleter() {
+          return {
+            getCompletions(editor, session, pos, prefix, callback) {
+              var state = editor.session.getState(pos.row);
+              var keywordCompletions = session.$mode.getCompletions(state, session, pos, prefix);
+              keywordCompletions = keywordCompletions.map((obj) => {
+                return Object.assign(obj, { value: obj.value.toUpperCase(), meta: 'Keyword', score: 0 });
               });
-              return resolve(flatSchema);
-            }, 200);
-          } catch (e) {
-            reject(e);
-          }
+              return callback(null, keywordCompletions);
+            },
+          };
+        }
+
+        /**
+         * Analytics schema derived completer which suggests exported tables and columns.
+         */
+        function getSchemaCompleter(schema) {
+          return {
+            getCompletions(editor, session, pos, prefix, callback) {
+              return callback(null, schema);
+            },
+          };
+        }
+
+        /**
+         * config
+         */
+        var element = document.querySelector('body > #editor');
+        var cfg = {
+          element,
+          value: `SELECT customer.firstname, ca.address.street, ca.address.country FROM customer INNER JOIN customeraddress ca ON customer.id = ca.id WHERE ca.country = 'Switzerland' OR ca.country IN ('Germany','Austria') GROUP BY 1 HAVING ca.city = 'Baden'`,
+          options: {
+            mode: 'ace/mode/prestosql',
+            theme: 'ace/theme/eclipse',
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: false,
+            minLines: 25,
+            maxLines: 50,
+            showPrintMargin: false,
+          },
+          completers: [],
+        };
+
+        var aceEditor;
+
+        var completers = [];
+        fetchSchemaMock().then(function (res) {
+          completers = [getKeywordCompleter(), getSchemaCompleter(res)];
+          Object.assign(cfg, { completers });
+          aceEditor = new AceTsEditor.AceEditor(cfg);
         });
-      }
 
-      /**
-       * Transform suggested keywords to upper case.
-       */
-      function getKeywordCompleter() {
-        return {
-          getCompletions(editor, session, pos, prefix, callback) {
-            var state = editor.session.getState(pos.row);
-            var keywordCompletions = session.$mode.getCompletions(state, session, pos, prefix);
-            keywordCompletions = keywordCompletions.map((obj) => {
-              return Object.assign(obj, { value: obj.value.toUpperCase(), meta: 'Keyword', score: 0 });
-            });
-            return callback(null, keywordCompletions);
-          }
-        }
-      }
-
-      /**
-       * Analytics schema derived completer which suggests exported tables and columns.
-       */
-      function getSchemaCompleter(schema) {
-        return {
-          getCompletions(editor, session, pos, prefix, callback) {
-            return callback(null, schema);
-          }
-        }
-      }
-
-      /**
-       * config
-       */
-      var element = document.querySelector('body > #editor');
-      var cfg = {
-        element,
-        value: `SELECT customer.firstname, ca.address.street, ca.address.country FROM customer INNER JOIN customeraddress ca ON customer.id = ca.id WHERE ca.country = 'Switzerland' OR ca.country IN ('Germany','Austria') GROUP BY 1 HAVING ca.city = 'Baden'`,
-        options: {
-          mode: 'ace/mode/prestosql',
-          theme: 'ace/theme/eclipse',
-          enableBasicAutocompletion: true,
-          enableLiveAutocompletion: false,
-          minLines: 25,
-          maxLines: 50,
-          showPrintMargin: false
-        },
-        completers: []
+        document.querySelector('body > #format').onclick = function (evt) {
+          var editor = ace.edit('editor');
+          var value = editor.getValue();
+          var formatted = sqlFormatter.format(value, { language: 'sql' });
+          editor.setValue(formatted);
+          editor.clearSelection();
+        };
       };
-
-      var aceEditor;
-
-      var completers = [];
-      fetchSchemaMock().then(function (res) {
-        completers = [
-          getKeywordCompleter(),
-          getSchemaCompleter(res)
-        ];
-        Object.assign(cfg, { completers });
-        aceEditor = new AceTsEditor.AceEditor(cfg);
-      });
-
-      document.querySelector('body > #format').onclick = function (evt) {
-        var editor = ace.edit("editor");
-        var value = editor.getValue();
-        var formatted = sqlFormatter.format(value, { language: 'sql' });
-        editor.setValue(formatted);
-        editor.clearSelection();
-      }
-    }
-  </script>
-  <div id="editor"></div>
-  <button id="format">Format</button>
-</body>
-
+    </script>
+    <div id="editor"></div>
+    <button id="format">Format</button>
+  </body>
 </html>

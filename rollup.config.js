@@ -2,9 +2,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 
-const extensions = [
-  '.js', '.jsx', '.ts', '.tsx',
-];
+const extensions = ['.js', '.jsx', '.ts', '.tsx'];
 
 export default {
   input: './src/index.ts',
@@ -24,17 +22,19 @@ export default {
     babel({
       extensions,
       exclude: 'node_modules/**',
-      babelHelpers: 'bundled'
+      babelHelpers: 'bundled',
     }),
   ],
 
-  output: [{
-    file: 'dist/ace-ts-editor.js',
-    name: 'AceTsEditor',
-    format: 'umd',
-    globals: {
-      'ace-builds': 'ace',
-      ace: 'ace'
-    }
-  }]
+  output: [
+    {
+      file: 'dist/ace-ts-editor.js',
+      name: 'AceTsEditor',
+      format: 'umd',
+      globals: {
+        'ace-builds': 'ace',
+        ace: 'ace',
+      },
+    },
+  ],
 };

@@ -4,9 +4,7 @@
 
 import * as ace from 'ace-builds';
 
-
 export interface IAceEditorOptions extends Partial<ace.Ace.EditorOptions> {
-
   /**
    * Enable auto completion via the language tools.
    */
@@ -19,7 +17,6 @@ export interface IAceEditorOptions extends Partial<ace.Ace.EditorOptions> {
 }
 
 export interface IAceEditorConfig {
-
   /**
    * The parent element the editor is added to.
    */
@@ -48,7 +45,6 @@ export interface IAceEditorConfig {
  * It sets the custom language mode as well as registers completers.
  */
 export class AceEditor {
-
   /**
    * Ace editor options.
    */
@@ -59,8 +55,8 @@ export class AceEditor {
    */
   private readonly defaultOptions: IAceEditorOptions = {
     enableBasicAutocompletion: false,
-    enableLiveAutocompletion: false
-  }
+    enableLiveAutocompletion: false,
+  };
 
   /**
    * Instantiate the ace editor with the given options and completers.
