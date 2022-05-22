@@ -1,4 +1,5 @@
 import { AceEditor, IAceEditorConfig } from "./index";
+import 'ace-builds/src-noconflict/ext-language_tools';
 
 describe('Ace Editor test bench', () => {
   test('basic', () => {

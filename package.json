@@ -1,6 +1,6 @@
 {
   "name": "ace-ts-editor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ace editor exposing an interface for custom mode and completers",
   "repository": {
     "type": "git",
@@ -25,24 +25,24 @@
   "module": "dist/ace-ts-editor.esm.js",
   "types": "dist/types/index.d.ts",
   "dependencies": {
-    "ace-builds": "^1.4.7"
+    "ace-builds": "^1.5.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.7.5",
+    "@babel/cli": "^7.17.10",
     "@babel/core": "^7.7.5",
     "@babel/plugin-proposal-class-properties": "^7.7.4",
     "@babel/plugin-proposal-numeric-separator": "^7.7.4",
     "@babel/plugin-proposal-object-rest-spread": "^7.7.4",
     "@babel/preset-env": "^7.7.6",
     "@babel/preset-typescript": "^7.7.4",
-    "@types/jest": "^24.0.23",
-    "jest": "^24.9.0",
+    "@types/jest": "^27.5.1",
+    "jest": "^27.5.1",
     "rollup": "^1.27.10",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "sql-formatter": "^2.3.3",
-    "ts-jest": "^24.2.0",
-    "typescript": "^3.7.3"
+    "ts-jest": "^27.1.5",
+    "typescript": "^4.2.0"
   }
 }
