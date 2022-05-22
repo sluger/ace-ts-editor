@@ -1,4 +1,5 @@
-ace.define('ace/mode/prestosql', [], function (require, exports, module) {
+/* eslint-disable no-undef */
+ace.define('ace/mode/prestosql', [], function (require, exports) {
   var oop = require('ace/lib/oop');
   var TextMode = require('ace/mode/text').Mode;
   var PrestoSqlHighlightRules = require('ace/mode/prestosql_highlight_rules').PrestoSqlHighlightRules;
@@ -15,7 +16,7 @@ ace.define('ace/mode/prestosql', [], function (require, exports, module) {
   exports.Mode = Mode;
 });
 
-ace.define('ace/mode/prestosql_highlight_rules', [], function (require, exports, module) {
+ace.define('ace/mode/prestosql_highlight_rules', [], function (require, exports) {
   var oop = require('ace/lib/oop');
   var TextHighlightRules = require('ace/mode/text_highlight_rules').TextHighlightRules;
 

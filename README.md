@@ -24,6 +24,14 @@ npm run build
 
 Find the artifacts in the `/dist` folder.
 
+# Examples
+
+Open `/examples/index.html` in the browser.
+
+# Development
+
+The dev environment is configured with Prettier, Husky, lint-staged, eslint for TypeScript and Jest.
+
 # Testing
 
 ```bash
@@ -31,7 +39,3 @@ npm test
 ```
 
 Runs a jest test creating an AceEditor instance.
-
-# Examples
-
-Open `/examples/index.html` in the browser.

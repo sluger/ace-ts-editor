@@ -1,6 +1,6 @@
 {
   "name": "ace-ts-editor",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Ace editor exposing an interface for custom mode and completers",
   "repository": {
     "type": "git",
@@ -23,7 +23,8 @@
     "build": "npm run build:types && npm run build:js",
     "test": "jest",
     "prepare": "husky install",
-    "pretty": "prettier --write ."
+    "pretty": "prettier --write .",
+    "lint": "eslint . --ext .js,.ts"
   },
   "main": "dist/ace-ts-editor.js",
   "unpkg": "dist/ace-ts-editor.min.js",
@@ -44,6 +45,9 @@
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-node-resolve": "^13.1.3",
     "@types/jest": "^27.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "eslint": "^8.16.0",
     "husky": "^8.0.1",
     "jest": "^27.5.1",
     "lint-staged": "^12.4.1",
