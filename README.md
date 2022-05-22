@@ -17,11 +17,13 @@ npm i
 ```bash
 npm run build
 ```
+Find the artifacts in the `/dist` folder.
 
 # Testing
 ```bash
 npm test
 ```
+Runs a jest test creating an AceEditor instance.
 
 # Examples
 Open `/examples/index.html` in the browser.
