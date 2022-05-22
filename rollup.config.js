@@ -1,6 +1,6 @@
-import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
-import babel from 'rollup-plugin-babel';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import babel from '@rollup/plugin-babel';
 
 const extensions = [
   '.js', '.jsx', '.ts', '.tsx',
@@ -23,7 +23,8 @@ export default {
     // Compile TypeScript/JavaScript files
     babel({
       extensions,
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
+      babelHelpers: 'bundled'
     }),
   ],
 
@@ -33,7 +34,7 @@ export default {
     format: 'umd',
     globals: {
       'ace-builds': 'ace',
-      'ace': 'ace'
+      ace: 'ace'
     }
   }]
 };
