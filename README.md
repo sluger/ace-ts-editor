@@ -4,10 +4,7 @@ Ace Typescript editor supporting custom language through completers with Typescr
 ![image](https://user-images.githubusercontent.com/5220584/169692104-e0ce3201-8aa5-476d-9ce7-089eac3ce625.png)
 
 # Prerequisites
-```bash
-$ node --version
-v12.22.12
-```
+Install node and npm, see `engines.node` in `package.json`.
 
 # Install
 ```bash

@@ -1,6 +1,6 @@
 {
   "name": "ace-ts-editor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Ace editor exposing an interface for custom mode and completers",
   "repository": {
     "type": "git",
@@ -8,6 +8,9 @@
   },
   "author": "stefan.luger@customweb.com",
   "license": "MIT",
+  "engines": {
+    "node": ">=12 <=16"
+  },
   "files": [
     "dist",
     "src"
