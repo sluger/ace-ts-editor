@@ -1,6 +1,6 @@
 {
   "name": "ace-ts-editor",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Ace editor exposing an interface for custom mode and completers",
   "repository": {
     "type": "git",
